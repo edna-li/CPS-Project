@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>微信支付教学模拟</title>
+<style>
+body { font-family: Arial, sans-serif; text-align:center; background:#f5f5f5; margin:0; padding:0; }
+h1 { margin-top:20px; }
+.page { display:none; }
+.active { display:block; }
+
+/* 手机外观 */
+#phone {
+  width:200px; height:400px; border:4px solid #333; border-radius:20px;
+  background:#fafafa; margin:20px auto; padding:10px;
+}
+.menu-item {
+  margin:10px; padding:10px; border:1px solid #ccc; border-radius:6px;
+}
+.menu-item.clickable {
+  background:#09bb07; color:#fff; cursor:pointer;
+}
+#screen {
+  width:160px; height:260px; background:#fff; margin:20px auto; border-radius:8px;
+  display:flex; justify-content:center; align-items:center; text-align:center;
+  padding:8px; font-size:16px;
+}
+
+/* 扫码仪 */
+#scanner {
+  width:180px; height:240px; border:3px dashed #333; border-radius:12px;
+  background:#eee; display:inline-flex; justify-content:center; align-items:center;
+  margin:20px; font-size:16px;
+}
+
+/* 金额确认 */
+#amountCheck { font-size:22px; margin:20px 0; }
+#confirmBtn {
+  background:#09bb07; color:#fff; padding:10px 20px; font-size:18px;
+  border:none; border-radius:6px; cursor:pointer;
+}
+#successMsg { font-size:26px; color:#09bb07; margin-top:40px; }
+</style>
+</head>
+<body>
+
+<h1>微信支付教学模拟</h1>
+
+<!-- 第一步：找到收付款 -->
+<div id="page-menu" class="page active">
+  <p>请在手机上点击【收付款】</p>
+  <div id="phone">
+    <div class="menu-item">发起群聊</div>
+    <div class="menu-item">添加朋友</div>
+    <div class="menu-item">扫一扫</div>
+    <div class="menu-item clickable" onclick="goToPayCode()">收付款</div>
+  </div>
+</div>
+
+<!-- 第二步：显示付款码 -->
+<div id="page-code" class="page">
+  <p>这是你的付款码，请将手机拖到扫码仪前</p>
+  <div style="display:flex; justify-content:center; align-items:center; margin-top:20px;">
+    <div id="phone" draggable="true">
+      <div id="screen">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?data=PayHere&size=120x120" alt="付款码">
+        <p>我的付款码</p>
+      </div>
+    </div>
+    <div id="scanner">扫码仪</div>
+  </div>
+  <div id="scanMsg" style="font-size:22px; color:#09bb07; margin-top:20px; display:none;">
+    🔄 扫码中...
+  </div>
+</div>
+
+<!-- 第三步：核对金额 -->
+<div id="page-amount" class="page">
+  <p>请核对支付金额</p>
+  <div id="amountCheck">支付金额：<b>10 元</b></div>
+  <button id="confirmBtn" onclick="confirmPay()">确认支付</button>
+</div>
+
+<!-- 第四步：支付成功 -->
+<div id="page-success" class="page">
+  <div id="successMsg">✅ 支付成功！</div>
+</div>
+
+<script>
+function switchPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// 点击收付款
+function goToPayCode(){
+  alert("✅ 你点击了收付款！");
+  switchPage("page-code");
+}
+
+// 拖拽扫码
+const phone = document.querySelector("#page-code #phone");
+const scanner = document.getElementById("scanner");
+const screen = document.getElementById("screen");
+const scanMsg = document.getElementById("scanMsg");
+
+phone.addEventListener("dragstart", (e)=> {
+  e.dataTransfer.setData("text/plain","phone");
+});
+scanner.addEventListener("dragover", (e)=> e.preventDefault());
+scanner.addEventListener("drop", (e)=> {
+  e.preventDefault();
+  scanMsg.style.display="block";
+  screen.innerHTML = "🔄 扫码中...";
+  setTimeout(()=>{
+    screen.innerHTML = "✅ 扫码成功";
+    scanMsg.innerText = "✅ 扫码完成！";
+    setTimeout(()=> switchPage("page-amount"), 1000);
+  },1500);
+});
+
+// 确认支付
+function confirmPay(){
+  switchPage("page-success");
+}
+</script>
+
+</body>
+</html>
