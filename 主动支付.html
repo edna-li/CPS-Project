@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <title>扫码支付模拟（完整流程）</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align:center; background:#f5f5f5; }
+
+    /* 公用容器 */
+    .page { display:none; }
+    .active { display:block; }
+
+    /* 手机外观 */
+    #phone {
+      width:160px; height:320px; border:4px solid #333; border-radius:20px;
+      background:#000; color:#fff; cursor:grab;
+    }
+    #screen {
+      width:130px; height:240px; background:#fff; margin:20px auto;
+      border-radius:8px; display:flex; justify-content:center; align-items:center;
+      text-align:center; padding:10px; font-size:16px;
+    }
+
+    /* 二维码 */
+    #qr { width:200px; height:200px; border:2px solid #333; background:#fff; }
+
+    /* 输入金额页面 */
+    #amountDisplay {
+      font-size:26px; margin:10px; border:1px solid #ccc; padding:5px 15px;
+      min-width:100px; border-radius:6px; text-align:right;
+    }
+    .keypad {
+      display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
+      margin-top:10px;
+    }
+    .keypad button {
+      font-size:20px; padding:15px; border:none; border-radius:6px; background:#eee; cursor:pointer;
+    }
+    .keypad button:hover { background:#ddd; }
+    #confirmBtn {
+      margin-top:12px; padding:12px 20px; font-size:20px;
+      background:#09bb07; color:#fff; border:none; border-radius:6px; cursor:pointer;
+    }
+    #successMsg { font-size:26px; color:#09bb07; margin-top:40px; }
+  </style>
+</head>
+<body>
+  <h1>扫码支付模拟</h1>
+
+  <!-- 页面 1: 扫码 -->
+  <div id="page-scan" class="page active">
+    <p>拖动手机去扫二维码</p>
+    <div style="display:flex; justify-content:space-around; align-items:center; margin:40px;">
+      <div id="phone" draggable="true">
+        <div id="screen">📱 等待扫码</div>
+      </div>
+      <img id="qr" src="https://api.qrserver.com/v1/create-qr-code/?data=PayHere&size=200x200" alt="二维码">
+    </div>
+    <div id="scanMsg" style="display:none; font-size:22px; color:#09bb07; margin-top:20px;">
+      ✅ 扫码成功！正在跳转...
+    </div>
+  </div>
+
+  <!-- 页面 2: 输入金额 -->
+  <div id="page-pay" class="page">
+    <h2>请输入支付金额</h2>
+    <div id="amountDisplay">0</div>
+    <div class="keypad">
+      <button onclick="pressKey('1')">1</button>
+      <button onclick="pressKey('2')">2</button>
+      <button onclick="pressKey('3')">3</button>
+      <button onclick="pressKey('4')">4</button>
+      <button onclick="pressKey('5')">5</button>
+      <button onclick="pressKey('6')">6</button>
+      <button onclick="pressKey('7')">7</button>
+      <button onclick="pressKey('8')">8</button>
+      <button onclick="pressKey('9')">9</button>
+      <button onclick="pressKey('.')">.</button>
+      <button onclick="pressKey('0')">0</button>
+      <button onclick="pressKey('←')">←</button>
+    </div>
+    <button id="confirmBtn" onclick="checkPay()">确认支付</button>
+  </div>
+
+  <!-- 页面 3: 成功 -->
+  <div id="page-success" class="page">
+    <div id="successMsg">✅ 支付成功！</div>
+  </div>
+
+  <script>
+    const phone = document.getElementById("phone");
+    const qr = document.getElementById("qr");
+    const screen = document.getElementById("screen");
+    const scanMsg = document.getElementById("scanMsg");
+
+    let amountInput = "";
+
+    // 拖拽扫码
+    phone.addEventListener("dragstart", (e)=> {
+      e.dataTransfer.setData("text/plain","phone");
+    });
+    qr.addEventListener("dragover", (e)=> e.preventDefault());
+    qr.addEventListener("drop", (e)=> {
+      e.preventDefault();
+      screen.innerHTML = "🔍 扫码中...";
+      setTimeout(()=>{
+        screen.innerHTML = "✅ 扫码成功";
+        scanMsg.style.display = "block";
+        setTimeout(()=> switchPage("page-pay"), 1500);
+      }, 1000);
+    });
+
+    // 页面切换
+    function switchPage(id){
+      document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+    }
+
+    // 输入金额
+    function pressKey(key){
+      if(key === "←"){
+        amountInput = amountInput.slice(0,-1);
+      } else {
+        amountInput += key;
+      }
+      document.getElementById("amountDisplay").innerText = amountInput || "0";
+    }
+
+    // 检查支付金额
+    function checkPay(){
+      if(amountInput === "10" || amountInput === "10.0" || amountInput === "10.00"){
+        switchPage("page-success");
+      } else {
+        alert("金额错误，请输入 10 元");
+      }
+    }
+  </script>
+</body>
+</html>
